@@ -15,7 +15,6 @@ TOKEN = "8237062025:AAFv6__wBeZDmur8kcEHVjKIQblbwmK-lWY"
 TWELVE_DATA_API_KEY = "33aec99f37d24aab8428cf43d5e58f8b"
 
 PAIRS = ["XAU/USD", "EUR/USD", "GBP/USD", "USD/JPY", "AUD/USD"]
-}
 
 TIMEFRAMES = {
     "5m": "5min",
