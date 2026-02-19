@@ -1,0 +1,8 @@
+python-telegram-bot==23.19.2
+numpy
+pandas
+requests
+ta
+joblib
+scikit-learn
+sqlite3
