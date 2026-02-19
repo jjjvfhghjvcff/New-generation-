@@ -1,4 +1,4 @@
-python-telegram-bot==23.19.2
+python-telegram-bot==20.5
 numpy
 pandas
 requests
