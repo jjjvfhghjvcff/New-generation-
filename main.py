@@ -10,7 +10,7 @@ from xgboost import XGBClassifier
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, JobQueue
 
-TOKEN = "8237062025:AAFv6__wBeZDmur8kcEHVjKIQblbwmK-lWY"
+TOKEN = "8209411514:AAEUaPrSHE1XX48TizknSxnXgb-HR8E8bBE"
 TWELVE_KEY = "413f1870be274f7fbfff5ab5d720c5a5"
 DB_NAME = "xauusd_ai.db"
 MODEL_FILE = "xauusd_model.pkl"
