@@ -8,7 +8,7 @@ import os
 import sqlite3
 from xgboost import XGBClassifier
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, JobQueue
 
 TOKEN = "8237062025:AAFv6__wBeZDmur8kcEHVjKIQblbwmK-lWY"
 TWELVE_KEY = "33aec99f37d24aab8428cf43d5e58f8b"
@@ -183,9 +183,9 @@ async def auto_signals(context:ContextTypes.DEFAULT_TYPE):
     except: pass
 
 init_db()
-app = Application.builder().token(TOKEN).build()
+app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start",start))
 app.add_handler(CommandHandler("subscribe",subscribe))
 app.add_handler(CallbackQueryHandler(button))
-app.job_queue.run_repeating(auto_signals,interval=3600,first=10)
+app.job_queue.run_repeating(auto_signals, interval=3600, first=10)
 app.run_polling()
