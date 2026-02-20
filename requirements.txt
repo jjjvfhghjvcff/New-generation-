@@ -6,3 +6,4 @@ ta
 joblib
 scikit-learn
 xgboost
+python-telegram-bot[job_queue]
