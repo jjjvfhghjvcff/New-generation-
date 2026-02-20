@@ -31,6 +31,7 @@ def fetch_data(interval="15min", outputsize=500):
     df = pd.DataFrame(r["values"])
     df["datetime"] = pd.to_datetime(df["datetime"])
     numeric_cols = ["open","high","low","close","volume"]
+    numeric_cols = [col for col in numeric_cols if col in df.columns]
     df[numeric_cols] = df[numeric_cols].astype(float)
     df = df.iloc[::-1].reset_index(drop=True)
     return df
@@ -168,22 +169,11 @@ async def button(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
 async def subscribe(update:Update,context:ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    if "subscribers" not in context.application.bot_data: context.application.bot_data["subscribers"]=[]
-    if chat_id not in context.application.bot_data["subscribers"]: context.application.bot_data["subscribers"].append(chat_id)
+    if "subscribers" not in context.application.bot_data:
+        context.application.bot_data["subscribers"]=[]
+    if chat_id not in context.application.bot_data["subscribers"]:
+        context.application.bot_data["subscribers"].append(chat_id)
     await update.message.reply_text("Subscribed to auto signals")
-
-async def auto_signals(context:ContextTypes.DEFAULT_TYPE):
-    try:
-        df1m = add_indicators(fetch_data("1min",500))
-        df15m = add_indicators(fetch_data("15min",500))
-        df1h = add_indicators(fetch_data("1h",500))
-        model = load_model(df1m)
-        direction,entry,tp1,tp2,sl,confidence = generate_signal(df1m,df15m,df1h,model)
-        text = f"Auto Signal\nXAUUSD {direction}\nEntry:{entry}\nTP1:{tp1}\nTP2:{tp2}\nSL:{sl}\nConfidence:{confidence}%"
-        subscribers = context.application.bot_data.get("subscribers",[])
-        for chat_id in subscribers: await context.bot.send_message(chat_id,text)
-        train_model(df1m)
-    except: pass
 
 init_db()
 app = ApplicationBuilder().token(TOKEN).build()
