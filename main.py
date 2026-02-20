@@ -29,7 +29,10 @@ def fetch_data(interval="15min", outputsize=500):
     if "values" not in r:
         raise Exception("Twelve Data API Error: "+str(r))
     df = pd.DataFrame(r["values"])
-    df = df.astype(float).iloc[::-1].reset_index(drop=True)
+    df["datetime"] = pd.to_datetime(df["datetime"])
+    numeric_cols = ["open","high","low","close","volume"]
+    df[numeric_cols] = df[numeric_cols].astype(float)
+    df = df.iloc[::-1].reset_index(drop=True)
     return df
 
 def add_indicators(df):
