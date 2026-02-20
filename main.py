@@ -8,7 +8,9 @@ import os
 import sqlite3
 from xgboost import XGBClassifier
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, JobQueue
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+import feedparser
+from datetime import datetime, timedelta
 
 TOKEN = "8209411514:AAEUaPrSHE1XX48TizknSxnXgb-HR8E8bBE"
 TWELVE_KEY = "413f1870be274f7fbfff5ab5d720c5a5"
@@ -102,16 +104,31 @@ def predict(df,model):
     prob = model.predict_proba(latest)[0][1]
     return prob
 
-def generate_signal(df15m,df1h,model):
-    bias = detect_structure(df1h)
+def check_fundamentals():
+    url = "https://www.forexfactory.com/ffcal_week_this.xml"
+    feed = feedparser.parse(url)
+    now = datetime.utcnow()
+    for entry in feed.entries:
+        if "gold" in entry.title.lower():
+            try:
+                news_time = datetime.strptime(entry.published, "%a, %d %b %Y %H:%M:%S %Z")
+                if now <= news_time <= now + timedelta(hours=1):
+                    return True
+            except: continue
+    return False
+
+def generate_signal(df15m,df1h,df4h,model):
+    if check_fundamentals():
+        return "HOLD", None, None, None, None, 0
+    bias = detect_structure(df4h)
     structure15 = detect_structure(df15m)
     sweep = detect_liquidity_sweep(df15m)
     zone = supply_demand(df15m)
-    psar_candle = df1m["psar"].iloc[-1]
-    macd_c = df1m["macd"].iloc[-1]
+    psar_candle = df15m["psar"].iloc[-1]
+    macd_c = df15m["macd"].iloc[-1]
     macd_signal_c = df15m["macd_signal"].iloc[-1]
-    entry_candle = df1m.iloc[-1]
-    confidence = predict(df1m,model)
+    entry_candle = df15m.iloc[-1]
+    confidence = predict(df15m,model)
     direction = "BUY"
     if bias<0: direction="SELL"
     if structure15<0: direction="SELL"
@@ -125,7 +142,7 @@ def generate_signal(df15m,df1h,model):
     if direction=="BUY" and macd_c<macd_signal_c: direction="SELL"
     if direction=="SELL" and macd_c>macd_signal_c: direction="BUY"
     entry = entry_candle["close"]
-    atr = df1m["atr"].iloc[-1]
+    atr = df15m["atr"].iloc[-1]
     risk_multiplier = 1.5
     tp1 = entry + atr*risk_multiplier if direction=="BUY" else entry - atr*risk_multiplier
     tp2 = entry + atr*2*risk_multiplier if direction=="BUY" else entry - atr*2*risk_multiplier
@@ -148,18 +165,18 @@ def backtest(df,model):
 async def start(update:Update,context:ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton("Get Signal",callback_data="signal")],
                 [InlineKeyboardButton("Backtest",callback_data="backtest")]]
-    await update.message.reply_text("XAUUSD Multi-TF AI with SAR & MACD Ready",reply_markup=InlineKeyboardMarkup(keyboard))
+    await update.message.reply_text("XAUUSD Multi-TF AI with SAR, MACD & Fundamentals Ready",reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def button(update:Update,context:ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     try:
-        df1m = add_indicators(fetch_data("1min",500))
         df15m = add_indicators(fetch_data("15min",500))
         df1h = add_indicators(fetch_data("1h",500))
-        model = load_model(df1m)
+        df4h = add_indicators(fetch_data("4h",500))
+        model = load_model(df15m)
         if query.data=="signal":
-            direction,entry,tp1,tp2,sl,confidence = generate_signal(df1m,df15m,df1h,model)
+            direction,entry,tp1,tp2,sl,confidence = generate_signal(df15m,df1h,df4h,model)
             text = f"XAUUSD {direction}\nEntry:{entry}\nTP1:{tp1}\nTP2:{tp2}\nSL:{sl}\nConfidence:{confidence}%"
             await query.edit_message_text(text)
         if query.data=="backtest":
