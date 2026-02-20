@@ -5,3 +5,4 @@ requests
 ta
 joblib
 scikit-learn
+xgboost
