@@ -6,3 +6,4 @@ ta
 joblib
 scikit-learn
 xgboost
+feedparser
