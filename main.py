@@ -11,7 +11,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, JobQueue
 
 TOKEN = "8237062025:AAFv6__wBeZDmur8kcEHVjKIQblbwmK-lWY"
-TWELVE_KEY = "33aec99f37d24aab8428cf43d5e58f8b"
+TWELVE_KEY = "413f1870be274f7fbfff5ab5d720c5a5"
 DB_NAME = "xauusd_ai.db"
 MODEL_FILE = "xauusd_model.pkl"
 
