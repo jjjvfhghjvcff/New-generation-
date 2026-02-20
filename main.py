@@ -102,14 +102,14 @@ def predict(df,model):
     prob = model.predict_proba(latest)[0][1]
     return prob
 
-def generate_signal(df1m,df15m,df1h,model):
+def generate_signal(df15m,df1h,model):
     bias = detect_structure(df1h)
     structure15 = detect_structure(df15m)
     sweep = detect_liquidity_sweep(df15m)
     zone = supply_demand(df15m)
     psar_candle = df1m["psar"].iloc[-1]
     macd_c = df1m["macd"].iloc[-1]
-    macd_signal_c = df1m["macd_signal"].iloc[-1]
+    macd_signal_c = df15m["macd_signal"].iloc[-1]
     entry_candle = df1m.iloc[-1]
     confidence = predict(df1m,model)
     direction = "BUY"
@@ -125,9 +125,11 @@ def generate_signal(df1m,df15m,df1h,model):
     if direction=="BUY" and macd_c<macd_signal_c: direction="SELL"
     if direction=="SELL" and macd_c>macd_signal_c: direction="BUY"
     entry = entry_candle["close"]
-    tp1 = entry+1.0 if direction=="BUY" else entry-1.0
-    tp2 = entry+1.6 if direction=="BUY" else entry-1.6
-    sl = entry-0.8 if direction=="BUY" else entry+0.8
+    atr = df1m["atr"].iloc[-1]
+    risk_multiplier = 1.5
+    tp1 = entry + atr*risk_multiplier if direction=="BUY" else entry - atr*risk_multiplier
+    tp2 = entry + atr*2*risk_multiplier if direction=="BUY" else entry - atr*2*risk_multiplier
+    sl = entry - atr*risk_multiplier if direction=="BUY" else entry + atr*risk_multiplier
     return direction,entry,tp1,tp2,sl,round(confidence*100,2)
 
 def backtest(df,model):
